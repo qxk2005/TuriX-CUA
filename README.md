@@ -95,7 +95,7 @@ Ready to level up? Update your `config.json` and start automating—happy hackin
 ## 🖼️ Demos
 <p align="center"><strong>TuriX SuperPower App Demo</strong></p>
 <p align="center">
-   <img src="./doc/app_demo.jpg" width="1600" alt="TuriX SuperPower app demo">
+   <img src="./doc/app_demo.png" width="1600" alt="TuriX SuperPower app demo">
 </p>
 
 <h3 align="center">MacOS Demo</h3>

@@ -104,7 +104,7 @@ git checkout mac_legacy
 ## <a id="demos"></a>🖼️ 演示
 <p align="center"><strong>TuriX SuperPower App 演示</strong></p>
 <p align="center">
-   <img src="./doc/app_demo.jpg" width="1600" alt="TuriX SuperPower 应用演示">
+   <img src="./doc/app_demo.png" width="1600" alt="TuriX SuperPower 应用演示">
 </p>
 
 <h3 align="center">MacOS 演示</h3>
