@@ -10,6 +10,7 @@ from langchain_core.messages import BaseMessage
 
 from src.agent.message_manager.service import MessageManager
 from src.utils.record_store import RecordStore
+turix-cua
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,8 @@ class BrainSearchFlow:
         self.record_store = record_store
 
     def extract_read_files(self, parsed: dict) -> Optional[list[str]]:
+        if not isinstance(parsed, dict):
+            return None
         read_value = parsed.get("read_files")
         if not read_value:
             return None
@@ -34,10 +37,20 @@ class BrainSearchFlow:
         return None
 
     def parse_response(self, text: str, label: str = "Brain") -> dict:
-        cleaned = re.sub(r"^```(json)?", "", text.strip())
-        cleaned = re.sub(r"```$", "", cleaned).strip()
+        # Strip Markdown code fences that Gemini models may wrap around JSON.
+        cleaned = re.sub(r'^```(?:json)?\s*', '', text.strip(), flags=re.IGNORECASE)
+        cleaned = re.sub(r'```\s*$', '', cleaned).strip()
+        # Fallback: locate the JSON object within the string.
+        if not cleaned.startswith('{'):
+            start = cleaned.find('{')
+            end = cleaned.rfind('}')
+            if start != -1 and end > start:
+                cleaned = cleaned[start:end + 1]
         logger.debug("[%s] Raw text: %s", label, cleaned)
-        return json.loads(cleaned)
+        val = json.loads(cleaned)
+        if not isinstance(val, dict):
+            raise ValueError(f"Expected JSON object (dict), but got {type(val).__name__}: {val!r}")
+        return val
 
     async def maybe_reinvoke(
         self,
@@ -61,3 +74,4 @@ class BrainSearchFlow:
             parsed = self.parse_response(str(response.content), label="Brain post-read")
             return parsed, brain_messages
         return parsed, message_manager.get_messages()
+

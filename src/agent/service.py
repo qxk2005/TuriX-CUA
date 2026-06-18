@@ -104,14 +104,18 @@ def _llm_identity_text(llm: Optional[BaseChatModel]) -> str:
 def llm_supports_response_format(llm: Optional[BaseChatModel]) -> bool:
     if llm is None:
         return False
+    # Check model identity first to catch Gemini/DeepSeek etc. even when
+    # _turix_supports_response_format was explicitly set to True by a generic
+    # OpenAI-compatible builder.
+    if isinstance(llm, (ChatOpenAI, AzureChatOpenAI)):
+        identity = _llm_identity_text(llm)
+        unsupported_tokens = ("deepseek", "minimax", "m2.5", "moonshot", "kimi", "gemini")
+        if any(token in identity for token in unsupported_tokens):
+            return False
+
     explicit = getattr(llm, "_turix_supports_response_format", None)
     if explicit is not None:
         return bool(explicit)
-
-    if isinstance(llm, (ChatOpenAI, AzureChatOpenAI)):
-        identity = _llm_identity_text(llm)
-        unsupported_tokens = ("deepseek", "minimax", "m2.5", "moonshot", "kimi")
-        return not any(token in identity for token in unsupported_tokens)
     return True
 
 
@@ -583,8 +587,15 @@ class Agent:
         if isinstance(response, dict):
             return response
         memory_text = str(getattr(response, "content", response))
-        cleaned_memory_response = re.sub(r"^```(json)?", "", memory_text.strip())
-        cleaned_memory_response = re.sub(r"```$", "", cleaned_memory_response).strip()
+        # Strip Markdown code fences that Gemini models may wrap around JSON.
+        cleaned_memory_response = re.sub(r'^```(?:json)?\s*', '', memory_text.strip(), flags=re.IGNORECASE)
+        cleaned_memory_response = re.sub(r'```\s*$', '', cleaned_memory_response).strip()
+        # Fallback: locate the JSON object within the string.
+        if not cleaned_memory_response.startswith('{'):
+            start = cleaned_memory_response.find('{')
+            end = cleaned_memory_response.rfind('}')
+            if start != -1 and end > start:
+                cleaned_memory_response = cleaned_memory_response[start:end + 1]
         logger.debug(f"[Memory] Raw text: {cleaned_memory_response}")
         return json.loads(cleaned_memory_response)
 
@@ -1355,7 +1366,16 @@ class Agent:
         logger.debug(f'LLM response: {response}')
         record = str(response.content)
 
-        output_dict = json.loads(record)
+        # Strip Markdown code fences that non-OpenAI models (e.g. Gemini) may wrap around JSON.
+        cleaned_record = re.sub(r'^```(?:json)?\s*', '', record.strip(), flags=re.IGNORECASE)
+        cleaned_record = re.sub(r'```\s*$', '', cleaned_record).strip()
+        # If still not starting with '{', attempt to locate the JSON object.
+        if not cleaned_record.startswith('{'):
+            start = cleaned_record.find('{')
+            end = cleaned_record.rfind('}')
+            if start != -1 and end > start:
+                cleaned_record = cleaned_record[start:end + 1]
+        output_dict = json.loads(cleaned_record)
         normalized_actions = []
         for action in output_dict.get("action", []):
             if not isinstance(action, dict) or not action:

@@ -267,11 +267,17 @@ def build_llm(cfg: dict, *, enable_thinking: bool | None = None):
         )
     
     if provider == "gpt":
+        effective_model = model_name or "gpt-4.1-mini"
+        # Auto-detect Gemini models behind OpenAI-compatible endpoints and
+        # disable features that the Gemini API does not support.
+        is_gemini = "gemini" in (effective_model or "").lower()
         return build_openai_compatible_llm(
-            model_name=model_name or "gpt-4.1-mini",
+            model_name=effective_model,
             api_key=api_key,
             base_url=base_url,
             temperature=cfg.get("temperature", 0.3),
+            supports_tool_calling=not is_gemini,
+            supports_response_format=not is_gemini,
             model_kwargs=model_kwargs,
             max_tokens=max_tokens,
             timeout=timeout,

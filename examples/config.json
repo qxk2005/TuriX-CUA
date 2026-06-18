@@ -3,35 +3,31 @@
   "output_dir": ".turix_tmp",
   "brain_enable_thinking": false,
   "brain_llm": {
-    "provider": "turix",
-    "model_name": "turix-brain",
-    "api_key": "your_api_key_here",
-    "base_url": "https://turixapi.io/v1" 
+    "provider": "gpt",
+    "model_name": "gemini-3-flash-agent",
+    "api_key": "sk-12ec215a71fa47ac8022080297b1b1f2",
+    "base_url": "http://127.0.0.1:8045/v1"
   },
-
   "actor_llm": {
-    "provider": "turix",
-    "model_name": "turix-actor",
-    "api_key": "your_api_key_here",
-    "base_url": "https://turixapi.io/v1" 
+    "provider": "gpt",
+    "model_name": "gemini-3-flash-agent",
+    "api_key": "sk-12ec215a71fa47ac8022080297b1b1f2",
+    "base_url": "http://127.0.0.1:8045/v1"
   },
-
   "planner_llm": {
-    "provider": "turix",
-    "model_name": "turix-brain",
-    "api_key": "your_api_key_here",
-    "base_url": "https://turixapi.io/v1" 
+    "provider": "gpt",
+    "model_name": "gemini-3-flash-agent",
+    "api_key": "sk-12ec215a71fa47ac8022080297b1b1f2",
+    "base_url": "http://127.0.0.1:8045/v1"
   },
-
   "memory_llm": {
-    "provider": "turix",
-    "model_name": "turix-brain",
-    "api_key": "your_api_key_here",
-    "base_url": "https://turixapi.io/v1" 
+    "provider": "gpt",
+    "model_name": "gemini-3-flash-agent",
+    "api_key": "sk-12ec215a71fa47ac8022080297b1b1f2",
+    "base_url": "http://127.0.0.1:8045/v1"
   },
-
   "agent": {
-    "task": "open Chrome, go to github, and search for turix-cua in the github webpage. Enter the TuriX-CUA repository, and star it.",
+    "task": "open Safari, go to github, and search for turix-cua. Enter the TuriX-CUA repository.",
     "memory_budget_tokens": 2000,
     "summary_memory_budget_tokens": 8000,
     "use_ui": false,

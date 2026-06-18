@@ -108,18 +108,8 @@ class MessageManager:
 
 	def _supports_tool_messages(self, llm: BaseChatModel) -> bool:
 		model_candidate = self._unwrap_bound_llm(llm)
-		explicit = getattr(llm, "_turix_supports_tool_calling", None)
-		if explicit is None and model_candidate is not llm:
-			explicit = getattr(model_candidate, "_turix_supports_tool_calling", None)
-		if explicit is not None:
-			return bool(explicit)
-
-		tool_choice = self._extract_tool_choice(llm)
-		if isinstance(tool_choice, str) and tool_choice.lower() == "none":
-			return False
-		if isinstance(tool_choice, dict) and str(tool_choice.get("type", "")).lower() == "none":
-			return False
-
+		# Check model identity first to catch Gemini/DeepSeek etc. even when
+		# _turix_supports_tool_calling was explicitly set by a generic builder.
 		identity_parts = []
 		for candidate in [llm, model_candidate]:
 			if candidate is None:
@@ -150,8 +140,24 @@ class MessageManager:
 			"tongyi",
 			"qwen-plus",
 			"qwen3.5-plus",
+			"gemini",
 		)
-		return not any(token in identity for token in unsupported_tokens)
+		if any(token in identity for token in unsupported_tokens):
+			return False
+
+		explicit = getattr(llm, "_turix_supports_tool_calling", None)
+		if explicit is None and model_candidate is not llm:
+			explicit = getattr(model_candidate, "_turix_supports_tool_calling", None)
+		if explicit is not None:
+			return bool(explicit)
+
+		tool_choice = self._extract_tool_choice(llm)
+		if isinstance(tool_choice, str) and tool_choice.lower() == "none":
+			return False
+		if isinstance(tool_choice, dict) and str(tool_choice.get("type", "")).lower() == "none":
+			return False
+
+		return True
 
 	def _unwrap_bound_llm(self, llm: Any) -> Any:
 		"""Unwrap LangChain RunnableBinding-like wrappers to access the base model."""
