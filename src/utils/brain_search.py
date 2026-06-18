@@ -10,7 +10,7 @@ from langchain_core.messages import BaseMessage
 
 from src.agent.message_manager.service import MessageManager
 from src.utils.record_store import RecordStore
-turix-cua
+
 
 logger = logging.getLogger(__name__)
 
